@@ -23,11 +23,6 @@ const copy = async () => {
   } catch (err) {
     console.error(err, "Error creating destination folder2");
   }
-  /* 
-  const items = await fs.readdir(sourceFolder, {
-    withFileTypes: true,
-  });
-  console.dir(items); */
 };
 
 await copy();
