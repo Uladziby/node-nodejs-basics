@@ -1,17 +1,19 @@
-import fs from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import { writeFile } from "node:fs/promises";
 
 const create = async () => {
   const content = "I am fresh and young";
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
 
-  const path = "src/fs/files/fresh.txt";
+  const filePath = join(__dirname, "files", "fresh.txt");
 
-  fs.writeFile(path, content, (err) => {
-    if (err) {
-      console.error("FS operation failed");
-    } else {
-      console.dir("File created successfully");
-    }
-  });
+  try {
+    await writeFile(filePath, content, { encoding: "utf-8", flag: "wx" });
+  } catch {
+    throw new Error("FS operation failed");
+  }
 };
 
 await create();

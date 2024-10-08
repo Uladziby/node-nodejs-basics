@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import { readdir, mkdir, copyFile } from "node:fs/promises";
+import path, { join } from "path";
 import { fileURLToPath } from "url";
 
 const copy = async () => {
@@ -8,20 +8,21 @@ const copy = async () => {
   const sourceFolder = "/files";
   const destinationFolder = "/files_copy";
 
-  console.dir(__dirname + sourceFolder);
-
   try {
-    if (!fs.promises.access(__dirname + destinationFolder)) {
-      fs.promises.mkdir(__dirname + destinationFolder, (err) => {
-        if (err) {
-          console.error(err, "Error creating destination folder");
-        } else {
-          console.dir("Destination folder created successfully");
-        }
-      });
-    }
+    const [files] = await Promise.all([
+      readdir(__dirname + sourceFolder),
+      mkdir(__dirname + destinationFolder),
+    ]);
+
+    await Promise.all(
+      files.map(async (file) => {
+        const source = join(__dirname, sourceFolder, file);
+        const destination = join(__dirname, destinationFolder, file);
+        await copyFile(source, destination);
+      })
+    );
   } catch (err) {
-    console.error(err, "Error creating destination folder2");
+    console.error(err, "FS operation failed");
   }
 };
 
