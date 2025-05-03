@@ -1,20 +1,31 @@
-import { Worker } from "worker_threads";
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+import os from 'node:os';
+import { Worker } from 'node:worker_threads';
 
 const performCalculations = async () => {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker("./src/wt/worker.js");
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  const workerPath = path.resolve(__dirname, 'worker.js');
+  const cpusCount = os.cpus().length;
 
-    worker.onmessage = (message) => {
-      console.log("Received from worker:", message.data);
-      resolve(message.data);
-    };
+  let number = 10;
+  const arrayWorkers = [];
 
-    worker.onerror = (error) => {
-      reject(error);
-    };
-
-    worker.postMessage(10);
-  });
+  for (let i = 0; i < cpusCount; i++) {
+    arrayWorkers.push(
+      new Promise((resolve) => {
+        new Worker(workerPath, { workerData: number + i })
+          .on('message', (result) =>
+            resolve({ data: result, status: 'resolved' })
+          )
+          .on('error', (error) => resolve({ data: null, status: 'error' }));
+      })
+    );
+  }
+  const result = await Promise.all(arrayWorkers);
+  console.log(result);
+  return result;
 };
 
 await performCalculations();
